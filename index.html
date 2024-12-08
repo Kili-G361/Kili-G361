@@ -40,8 +40,8 @@
         }
 
         #clickButton {
-            /* Stile für die Mayo-Flasche (Klick-Button) */
-            width: 100px;
+            /* Größere Mayo-Flasche (Klick-Button) */
+            width: 200px;
             height: auto;
             cursor: pointer;
             border: none;
@@ -88,12 +88,31 @@
         #shop button:hover {
             background-color: #e0a800;
         }
+
+        #videoOverlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 9999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #videoOverlay video {
+            max-width: 90%;
+            max-height: 90%;
+        }
     </style>
 </head>
 <body>
     <!-- HUD mit Münzen-Anzeige -->
     <div id="hud">
-        <div id="coins">Münzen: 0 <img id="coinIcon" src="muenze.png" alt="Münze"></div>
+        <div id="coins"><img id="coinIcon" src="muenze.png" alt="Münze"> 0</div>
     </div>
     <!-- Klick-Button -->
     <img id="clickButton" src="mayo_flasche.png" alt="Mayo Flasche">
@@ -106,6 +125,14 @@
         <button id="megaObjectButton" disabled>Random Special Mega Objekt (1000 Münzen)</button>
     </div>
 
+    <!-- Video Overlay -->
+    <div id="videoOverlay">
+        <video id="megaVideo" controls autoplay>
+            <source src="mega_video.mp4" type="video/mp4">
+            Dein Browser unterstützt dieses Videoformat nicht.
+        </video>
+    </div>
+
     <script>
         let coins = 0;
         let doubleClickUpgrade = false;
@@ -116,17 +143,18 @@
         const boosterButton = document.getElementById('boosterButton');
         const megaObjectButton = document.getElementById('megaObjectButton');
         const shop = document.getElementById('shop');
+        const videoOverlay = document.getElementById('videoOverlay');
+        const megaVideo = document.getElementById('megaVideo');
 
         const clickSound = new Audio('click.mp3');
         const purchaseSound = new Audio('purchase.mp3');
         const boostSoundtrack = new Audio('boost.mp3');
-        const megaSound = new Audio('mega.mp3');
         boostSoundtrack.loop = true;
 
         function handleClick() {
             const pointsToAdd = doubleClickUpgrade ? 2 : 1;
             coins += pointsToAdd;
-            coinsDisplay.textContent = `Münzen: ${coins}`;
+            coinsDisplay.innerHTML = `<img id='coinIcon' src='muenze.png' alt='Münze'> ${coins}`;
             updateShop();
 
             clickSound.currentTime = 0;
@@ -197,17 +225,18 @@
                     console.error('Fehler beim Abspielen des Sounds:', error);
                 });
 
-                megaSound.volume = 1.0;
-                megaSound.currentTime = 0;
-                megaSound.play().catch(error => {
-                    console.error('Fehler beim Abspielen des Mega-Sounds:', error);
+                videoOverlay.style.display = 'flex';
+                megaVideo.currentTime = 0;
+                megaVideo.play().catch(error => {
+                    console.error('Fehler beim Abspielen des Videos:', error);
                 });
 
-                setTimeout(() => {
+                megaVideo.onended = () => {
+                    videoOverlay.style.display = 'none';
                     shopLocked = false;
                     megaObjectButton.disabled = false;
                     updateShop();
-                }, 30000);
+                };
             }
         });
 
