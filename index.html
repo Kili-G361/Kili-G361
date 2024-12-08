@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Klickspiel</title>
+    <style>
+        body {
+            /* Grundlegende Stileinstellungen für die gesamte Seite */
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background-color: #f0f0f0;
+            margin: 0;
+        }
+
+        #hud {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        #coins {
+            font-size: 2em;
+            margin-right: 20px;
+        }
+
+        #coins {
+            display: flex;
+            align-items: center;
+        }
+
+        #coinIcon {
+            width: 30px;
+            height: auto;
+            margin-left: 10px;
+        }
+
+        #clickButton {
+            /* Stile für die Mayo-Flasche (Klick-Button) */
+            width: 100px;
+            height: auto;
+            cursor: pointer;
+            border: none;
+            padding: 0;
+            background: none;
+        }
+
+        #shopButton {
+            margin-top: 20px;
+            padding: 10px;
+            font-size: 1em;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        #shopButton:hover {
+            background-color: #218838;
+        }
+
+        #shop {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 20px;
+            border: 1px solid #ccc;
+            padding: 20px;
+            background-color: #ffffff;
+        }
+
+        #shop button {
+            margin-top: 10px;
+            padding: 10px;
+            font-size: 1em;
+            background-color: #ffc107;
+            color: black;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        #shop button:hover {
+            background-color: #e0a800;
+        }
+    </style>
+</head>
+<body>
+    <!-- HUD mit Münzen-Anzeige -->
+    <div id="hud">
+        <div id="coins">Münzen: 0 <img id="coinIcon" src="muenze.png" alt="Münze"></div>
+    </div>
+    <!-- Klick-Button -->
+    <img id="clickButton" src="mayo_flasche.png" alt="Mayo Flasche">
+    <!-- Shop Button -->
+    <button id="shopButton">Shop öffnen</button>
+    <!-- Shop-Anzeige -->
+    <div id="shop">
+        <h3>Shop</h3>
+        <button id="boosterButton" disabled>Booster kaufen (100 Münzen)</button>
+        <button id="megaObjectButton" disabled>Random Special Mega Objekt (1000 Münzen)</button>
+    </div>
+
+    <script>
+        let coins = 0;
+        let doubleClickUpgrade = false;
+        let shopLocked = false;
+        const coinsDisplay = document.getElementById('coins');
+        const clickButton = document.getElementById('clickButton');
+        const shopButton = document.getElementById('shopButton');
+        const boosterButton = document.getElementById('boosterButton');
+        const megaObjectButton = document.getElementById('megaObjectButton');
+        const shop = document.getElementById('shop');
+
+        const clickSound = new Audio('click.mp3');
+        const purchaseSound = new Audio('purchase.mp3');
+        const boostSoundtrack = new Audio('boost.mp3');
+        const megaSound = new Audio('mega.mp3');
+        boostSoundtrack.loop = true;
+
+        function handleClick() {
+            const pointsToAdd = doubleClickUpgrade ? 2 : 1;
+            coins += pointsToAdd;
+            coinsDisplay.textContent = `Münzen: ${coins}`;
+            updateShop();
+
+            clickSound.currentTime = 0;
+            clickSound.play().catch(error => {
+                console.error('Fehler beim Abspielen des Sounds:', error);
+            });
+        }
+
+        clickButton.addEventListener('click', handleClick);
+        clickButton.addEventListener('touchstart', (event) => {
+            event.preventDefault();
+            handleClick();
+        });
+
+        shopButton.addEventListener('click', () => {
+            shop.style.display = shop.style.display === 'none' ? 'flex' : 'none';
+        });
+
+        boosterButton.addEventListener('click', () => {
+            if (coins >= 100 && !shopLocked) {
+                coins -= 100;
+                doubleClickUpgrade = true;
+                shopLocked = true;
+                boosterButton.disabled = true;
+                megaObjectButton.disabled = true;
+                boosterButton.textContent = 'Booster aktiviert! (30 Sekunden)';
+                coinsDisplay.textContent = `Münzen: ${coins}`;
+                updateShop();
+
+                purchaseSound.currentTime = 0;
+                purchaseSound.play().catch(error => {
+                    console.error('Fehler beim Abspielen des Sounds:', error);
+                });
+
+                boostSoundtrack.currentTime = 0;
+                boostSoundtrack.play().catch(error => {
+                    console.error('Fehler beim Abspielen des Boost-Soundtracks:', error);
+                });
+
+                let boosterEndTime = Date.now() + 30000;
+
+                const boosterTimerInterval = setInterval(() => {
+                    const remainingTime = Math.max(0, Math.ceil((boosterEndTime - Date.now()) / 1000));
+                    boosterButton.textContent = `Booster aktiv! (${remainingTime} Sekunden)`;
+                    if (remainingTime <= 0) {
+                        clearInterval(boosterTimerInterval);
+                        doubleClickUpgrade = false;
+                        shopLocked = false;
+                        boosterButton.textContent = 'Booster kaufen (100 Münzen)';
+
+                        boostSoundtrack.pause();
+                        boostSoundtrack.currentTime = 0;
+                        updateShop();
+                    }
+                }, 1000);
+            }
+        });
+
+        megaObjectButton.addEventListener('click', () => {
+            if (coins >= 1000 && !shopLocked) {
+                coins -= 1000;
+                shopLocked = true;
+                coinsDisplay.textContent = `Münzen: ${coins}`;
+                megaObjectButton.disabled = true;
+
+                purchaseSound.currentTime = 0;
+                purchaseSound.play().catch(error => {
+                    console.error('Fehler beim Abspielen des Sounds:', error);
+                });
+
+                megaSound.volume = 1.0;
+                megaSound.currentTime = 0;
+                megaSound.play().catch(error => {
+                    console.error('Fehler beim Abspielen des Mega-Sounds:', error);
+                });
+
+                setTimeout(() => {
+                    shopLocked = false;
+                    megaObjectButton.disabled = false;
+                    updateShop();
+                }, 30000);
+            }
+        });
+
+        function updateShop() {
+            boosterButton.disabled = coins < 100 || shopLocked;
+            megaObjectButton.disabled = coins < 1000 || shopLocked;
+        }
+    </script>
+</body>
+</html>
