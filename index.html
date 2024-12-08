@@ -98,7 +98,6 @@
             height: 100vh;
             background: rgba(0, 0, 0, 0.9);
             z-index: 9999;
-            display: flex;
             justify-content: center;
             align-items: center;
         }
@@ -127,7 +126,7 @@
 
     <!-- Video Overlay -->
     <div id="videoOverlay">
-        <video id="megaVideo" controls autoplay>
+        <video id="megaVideo" controls style="display: none; max-width: 90%; max-height: 90%;">
             <source src="mega_video.mp4" type="video/mp4">
             Dein Browser unterstützt dieses Videoformat nicht.
         </video>
@@ -226,6 +225,10 @@
                 });
 
                 videoOverlay.style.display = 'flex';
+                videoOverlay.style.justifyContent = 'center';
+                videoOverlay.style.alignItems = 'center';
+                megaVideo.style.display = 'block';
+                megaVideo.style.display = 'block';
                 megaVideo.currentTime = 0;
                 megaVideo.play().catch(error => {
                     console.error('Fehler beim Abspielen des Videos:', error);
@@ -233,6 +236,8 @@
 
                 megaVideo.onended = () => {
                     videoOverlay.style.display = 'none';
+                    megaVideo.style.display = 'none';
+                    megaVideo.style.display = 'none';
                     shopLocked = false;
                     megaObjectButton.disabled = false;
                     updateShop();
